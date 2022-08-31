@@ -11,5 +11,4 @@ def find_articles_by_str(text: str = ""):
     habr_parser = HabrParser(DRIVER)
     articles = habr_parser.search(text)
 
-    print(articles)
     return articles
