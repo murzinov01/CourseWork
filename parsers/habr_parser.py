@@ -97,7 +97,7 @@ class HabrParser:
         data: Union[Article, list[Article]],
         url=config.MONGO_URL,
         database=config.DATABASE,
-        collection=config.HABR_COLLECTION,
+        collection=config.HABR_ARTICLES_COLL,
     ):
         client = MongoClient(url)
         articles_db = client[database]
@@ -105,14 +105,20 @@ class HabrParser:
         if isinstance(data, Article):
             entry = asdict(data)
             habr_collection.update_one(
-                {"author": entry["author"], "title": entry["title"]}, {"$set": entry}, upsert=True
+                {"author": entry["author"], "title": entry["title"]},
+                {"$set": entry},
+                upsert=True,
             )
         elif isinstance(data, list):
             ops = []
             for entry in data:
                 entry = asdict(entry)
                 ops.append(
-                    UpdateOne({"author": entry["author"], "title": entry["title"]}, {"$set": entry}, upsert=True)
+                    UpdateOne(
+                        {"author": entry["author"], "title": entry["title"]},
+                        {"$set": entry},
+                        upsert=True,
+                    )
                 )
             habr_collection.bulk_write(ops)
         else:
@@ -151,7 +157,13 @@ class HabrParser:
             title_link=title.get_attribute(Attrs.HREF),
             image_link=image.get_attribute(Attrs.SRC) if image else None,
             description="\n\n".join((paragraph.text for paragraph in description.find_elements(By.TAG_NAME, Tags.P))),
-            tags=[{"tag": tag.text.strip(" \n\t,.*"), "link": tag.get_attribute(Attrs.HREF)} for tag in tags],
+            tags=[
+                {
+                    "tag": tag.text.strip(" \n\t,.*"),
+                    "link": tag.get_attribute(Attrs.HREF),
+                }
+                for tag in tags
+            ],
             stats=self.parse_article_stats(article),
         )
 
@@ -165,23 +177,35 @@ class HabrParser:
         else:
             raise ValueError
 
-    def parse(self, page_num=50):
-        for page in tqdm(range(1, page_num + 1)):
-            # open page
-            self.driver.get(f"{config.HABR_URL}/page{page}")
+    def search(self, search_query: str) -> list[Article]:
+        search_query = search_query.replace(" ", "%20")
+        self.driver.get(f"https://habr.com/ru/search/?q={search_query}&target_type=posts&order=relevance")
+        articles_data = self.parse_page()
+        return articles_data
 
-            articles_on_page = self.driver.find_elements(By.CLASS_NAME, self.ArticleClasses.ARTICLE)
-            articles_data = []
+    def parse_page(self) -> list[Article]:
+        articles_on_page = self.driver.find_elements(By.CLASS_NAME, self.ArticleClasses.ARTICLE)
+        articles_data = []
 
-            # parse page
-            for article in articles_on_page:
-                try:
-                    article_info = self.parse_article(article)
-                    articles_data.append(article_info)
-                except NoSuchElementException:
-                    continue
-                # print(json.dumps(asdict(article_info), indent=4, ensure_ascii=False))
+        # parse page
+        for article in articles_on_page:
+            try:
+                article_info = self.parse_article(article)
+                articles_data.append(article_info)
+            except NoSuchElementException:
+                continue
+        return articles_data
+
+    def parse(self, page_num=50, url=None):
+        if url is not None:
+            self.driver.get(f"{url}")
+            articles_data = self.parse_page()
             self.save(articles_data)
+        else:
+            for page in tqdm(range(1, page_num + 1)):
+                self.driver.get(f"{config.HABR_URL}/page{page}")
+                articles_data = self.parse_page()
+                self.save(articles_data)
 
     def update(self, page_num=50, days_n=1):
         for page in tqdm(range(1, page_num + 1)):
@@ -215,7 +239,7 @@ def main():
     driver = webdriver.Chrome(service=service)
 
     habr_parser = HabrParser(driver)
-    habr_parser.update()
+    habr_parser.parse(page_num=474)
 
 
 if __name__ == "__main__":

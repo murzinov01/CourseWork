@@ -1,0 +1,9 @@
+Автор: {{author}}
+<i>{{publish_date_text}}</i>
+<b>{{title}}</b><pre>{{description}}</pre>
+Всего голосов: <b> {{stats.votes}} </b>
+Просмотров: <b> {{stats.views}} </b>
+Добавлено в закладки: <b> {{stats.bookmarks}} </b>
+Комментариев: <b> {{stats.comments}} </b>
+Тэги: <strong>{% for tag in tags -%} {{tag['tag']}}{% if not loop.last -%}{{", "}}{%- endif %} {%- endfor %}</strong>
+<a href="{{title_link}}">Посмотреть статью по ссылке</a>
