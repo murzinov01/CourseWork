@@ -177,9 +177,9 @@ class HabrParser:
         else:
             raise ValueError
 
-    def search(self, search_query: str) -> list[Article]:
+    def search(self, search_query: str, page=1) -> list[Article]:
         search_query = search_query.replace(" ", "%20")
-        self.driver.get(f"https://habr.com/ru/search/?q={search_query}&target_type=posts&order=relevance")
+        self.driver.get(f"https://habr.com/ru/search/page{page}/?q={search_query}&target_type=posts&order=relevance")
         articles_data = self.parse_page()
         return articles_data
 

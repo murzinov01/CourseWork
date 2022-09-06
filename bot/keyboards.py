@@ -11,6 +11,12 @@ class ShortCommands:
     NO = "no"
 
 
+class KeyboardButtons:
+    CLOSE = "❌"
+    LEFT = "◀"
+    RIGHT = "▶"
+
+
 APPROVE_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -29,3 +35,18 @@ FINDER_KEYBOARD = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,
 )
+
+
+def generate_articles_keyboard(articles: list, left: int, right: int) -> ReplyKeyboardMarkup:
+    keyboard = [[KeyboardButton(text=article["title"])] for article in articles[left:right]]
+    keyboard.append(
+        [
+            KeyboardButton(text=KeyboardButtons.LEFT),
+            KeyboardButton(text=KeyboardButtons.CLOSE),
+            KeyboardButton(text=KeyboardButtons.RIGHT),
+        ]
+    )
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
+        resize_keyboard=True,
+    )

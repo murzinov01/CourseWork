@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from aredis import StrictRedis
@@ -25,11 +26,29 @@ class HabrDB(metaclass=Singleton):
         habr_db = client[config.DATABASE]
         self.users_collection = habr_db[config.USERS_COLL]
 
-    async def find_user(self, user_id):
-        return await self.users_collection.find_one({"id": user_id})
+    async def find_user(self, user_id: object, projection=None):
+        return await self.users_collection.find_one({"id": user_id}, projection=projection)
 
-    async def update_user(self, user_id, data: dict):
+    async def update_user(self, user_id: object, data: dict):
         return await self.users_collection.update_one({"id": user_id}, {"$set": data}, upsert=True)
+
+    async def find_article_by_title(self, user_id: object, title: str) -> Optional[dict]:
+        entry = await self.users_collection.find_one(
+            {"id": user_id}, projection={"_id": 0, "articles_on_page": {"$elemMatch": {"title": title}}}
+        )
+        return entry["articles_on_page"][0] if entry else None
+
+    async def find_titles_on_page(self, user_id: object) -> Optional[list]:
+        entry = await self.users_collection.find_one({"id": user_id}, projection={"_id": 0, "titles_on_page": 1})
+        return entry.get("titles_on_page", []) if entry else None
+
+    async def find_current_page(self, user_id: object) -> Optional[int]:
+        entry = await self.users_collection.find_one({"id": user_id}, projection={"_id": 0, "current_page": 1})
+        return entry.get("current_page", 0) if entry else None
+
+    async def find_habr_page(self, user_id: object) -> Optional[int]:
+        entry = await self.users_collection.find_one({"id": user_id}, projection={"_id": 0, "habr_page": 1})
+        return entry.get("habr_page", 0) if entry else None
 
 
 class RedisDB(metaclass=Singleton):
@@ -42,7 +61,3 @@ class RedisDB(metaclass=Singleton):
 
     async def get(self, key):
         return await self.client.get(key)
-
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(RedisDB().set("foo", "bar"))
