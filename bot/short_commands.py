@@ -1,7 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.keyboards import FINDER_KEYBOARD, SUBSCRIBE_FINDER
+from bot.database import HabrDB
+from bot.keyboards import FINDER_KEYBOARD, SUBSCRIBE_KEYBOARD, UNSUBSCRIBE_KEYBOARD
 from bot.messages import Messages
 
 
@@ -23,8 +24,19 @@ async def find_articles(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user["id"]
+    chat_id = update.message.chat_id
+    await HabrDB().update_user(user_id, {"chat_id": chat_id})
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=Messages.HOW_NOTIFY,
-        reply_markup=SUBSCRIBE_FINDER,
+        reply_markup=SUBSCRIBE_KEYBOARD,
+    )
+
+
+async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=Messages.UNSUBSCRIBE,
+        reply_markup=UNSUBSCRIBE_KEYBOARD,
     )

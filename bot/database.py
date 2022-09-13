@@ -32,6 +32,19 @@ class HabrDB(metaclass=Singleton):
     async def update_user(self, user_id: object, data: dict):
         return await self.users_collection.update_one({"id": user_id}, {"$set": data}, upsert=True)
 
+    async def update_chat(self, chat_id: object, data: dict):
+        return await self.users_collection.update_one({"chat_id": chat_id}, {"$set": data}, upsert=True)
+
+    async def subscribe_on_theme(self, chat_id: object, theme: str):
+        return await self.users_collection.update_one(
+            {"chat_id": chat_id}, {"$addToSet": {"subscribe_on_theme": theme}}
+        )
+
+    async def unsubscribe_on_theme(self, chat_id: object, theme: str):
+        return await self.users_collection.update_one(
+            {"chat_id": chat_id}, {"$pull": {"subscribe_on_theme": {"$in": [theme]}}}
+        )
+
     async def find_article_by_title(self, user_id: object, title: str) -> Optional[dict]:
         entry = await self.users_collection.find_one(
             {"id": user_id}, projection={"_id": 0, "articles_on_page": {"$elemMatch": {"title": title}}}
