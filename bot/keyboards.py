@@ -11,6 +11,12 @@ class ShortCommands:
     NO = "no"
 
 
+class SubscribeOptions:
+    TAG = "tag"
+    AUTHOR = "author"
+    THEME = "theme"
+
+
 class KeyboardButtons:
     CLOSE = "❌"
     LEFT = "◀"
@@ -34,6 +40,17 @@ FINDER_KEYBOARD = ReplyKeyboardMarkup(
         ]
     ],
     resize_keyboard=True,
+)
+
+
+SUBSCRIBE_FINDER = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Тэг", callback_data=SubscribeOptions.TAG),
+            InlineKeyboardButton(text="Автор", callback_data=SubscribeOptions.AUTHOR),
+            InlineKeyboardButton(text="Тема", callback_data=SubscribeOptions.THEME),
+        ]
+    ]
 )
 
 

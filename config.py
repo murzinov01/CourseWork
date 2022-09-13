@@ -1,14 +1,14 @@
 HABR_URL = "https://habr.com/ru/flows/design"
 
 # Mongo
-MONGO_URL = "mongodb://docker:mongopw@localhost:49154"
+MONGO_URL = "mongodb://docker:mongopw@localhost:49153"
 DATABASE = "Articles"
 HABR_ARTICLES_COLL = "HabrArticles"
 USERS_COLL = "Users"
 
 # Redis
 REDIS_HOST = "localhost"
-REDIS_PORT = "49155"
+REDIS_PORT = "49154"
 REDIS_PASSWORD = "redispw"
 REDIS_DEFAULT_TTL = 86400
 

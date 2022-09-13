@@ -42,7 +42,7 @@ class Article:
     publish_date_text: str
     title: str
     title_link: str
-    image_link: str
+    # image_link: str
     description: str
     tags: list[dict[str, str]]
     stats: ArticleStats
@@ -143,10 +143,10 @@ class HabrParser:
         title = article.find_element(By.CLASS_NAME, self.ArticleClasses.TITLE)
         tags = article.find_elements(By.CLASS_NAME, self.ArticleClasses.TAG)
         description = article.find_element(By.CLASS_NAME, self.ArticleClasses.DESCRIPTION)
-        try:
-            image = article.find_element(By.CLASS_NAME, self.ArticleClasses.IMAGE)
-        except NoSuchElementException:
-            image = None
+        # try:
+        #     image = article.find_element(By.CLASS_NAME, self.ArticleClasses.IMAGE)
+        # except NoSuchElementException:
+        #     image = None
 
         return Article(
             author=author.text,
@@ -155,7 +155,7 @@ class HabrParser:
             publish_date_text=publish_date.text,
             title=title.text,
             title_link=title.get_attribute(Attrs.HREF),
-            image_link=image.get_attribute(Attrs.SRC) if image else None,
+            # image_link=image.get_attribute(Attrs.SRC) if image else None,
             description="\n\n".join((paragraph.text for paragraph in description.find_elements(By.TAG_NAME, Tags.P))),
             tags=[
                 {

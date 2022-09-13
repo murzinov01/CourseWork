@@ -8,11 +8,11 @@ from telegram.ext import ContextTypes
 from webdriver_manager.chrome import ChromeDriverManager
 
 import config
-from parsers.habr_parser import HabrParser, Article
+from parsers.habr_parser import HabrParser
 
 from bot.database import HabrDB, RedisDB
 from bot.keyboards import generate_articles_keyboard, KeyboardButtons
-from bot.messages import get_wait_msg
+from bot.messages import get_wait_msg, Messages
 
 from hashlib import md5
 
@@ -21,7 +21,9 @@ from bot.templates import construct_article_from_template
 DRIVER = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
 
-async def find_articles_by_str(update, context: ContextTypes.DEFAULT_TYPE, user_msg: str = "", page: int = 1) -> list[dict]:
+async def find_articles_by_str(
+    update, context: ContextTypes.DEFAULT_TYPE, user_msg: str = "", page: int = 1
+) -> list[dict]:
     # Calc query id
     redis_db = RedisDB()
     query_key = f"{user_msg}_{page}"
@@ -63,14 +65,14 @@ async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         articles_keyboard = generate_articles_keyboard(articles, 0, config.ARTICLES_PER_PAGE)
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Вот, что я нашёл", reply_markup=articles_keyboard
+            chat_id=update.effective_chat.id, text=Messages.FIND_RESULT, reply_markup=articles_keyboard
         )
 
         return await habr_db.update_user(user_id, {"action": "choose_article"})
     else:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Кажется, я ничего не смог найти, попробуй переформулировать по-другому",
+            text=Messages.CAN_NOT_FIND,
         )
 
 
@@ -114,12 +116,12 @@ async def paginate_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
         right = (current_page + 1) * config.ARTICLES_PER_PAGE
         articles_keyboard = generate_articles_keyboard(articles_on_page, left, right)
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Вот, что я нашёл", reply_markup=articles_keyboard
+            chat_id=update.effective_chat.id, text=Messages.FIND_RESULT, reply_markup=articles_keyboard
         )
     else:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Подожди-ка, мне нужно ещё поискать",
+            text=Messages.WAIT_PLEASE,
             reply_markup=ReplyKeyboardRemove(),
         )
         current_page = 0 if page > max_page else max_page
@@ -140,7 +142,7 @@ async def paginate_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         articles_keyboard = generate_articles_keyboard(articles_on_page, left, right)
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Вот, что я нашёл", reply_markup=articles_keyboard
+            chat_id=update.effective_chat.id, text=Messages.FIND_RESULT, reply_markup=articles_keyboard
         )
 
     update_fields["current_page"] = current_page
