@@ -38,9 +38,7 @@ class HabrDB(metaclass=Singleton):
         return await self.users_collection.update_one({"id": user_id}, {"$set": data}, upsert=True)
 
     async def subscribe_on_theme(self, user_id: object, theme: str):
-        return await self.users_collection.update_one(
-            {"id": user_id}, {"$addToSet": {"subscribe_on_theme": theme}}
-        )
+        return await self.users_collection.update_one({"id": user_id}, {"$addToSet": {"subscribe_on_theme": theme}})
 
     async def unsubscribe_on_theme(self, user_id: object, theme: str):
         return await self.users_collection.update_one(

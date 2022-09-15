@@ -10,8 +10,12 @@ from bot.keyboards import (
     KeyboardButtons,
     SubscribeOptions,
     CHOOSE_THEME_KEYBOARD,
-    CHOOSE_THEME_UNSUBSCRIBED_KEYBOARD, APPROVE_NOTIFY_KEYBOARD, APPROVE_SEARCH_KEYBOARD, APPROVE_SUBS_LIST_KEYBOARD,
-    APPROVE_HELP_KEYBOARD, APPROVE_DELETE_KEYBOARD,
+    CHOOSE_THEME_UNSUBSCRIBED_KEYBOARD,
+    APPROVE_NOTIFY_KEYBOARD,
+    APPROVE_SEARCH_KEYBOARD,
+    APPROVE_SUBS_LIST_KEYBOARD,
+    APPROVE_HELP_KEYBOARD,
+    APPROVE_DELETE_KEYBOARD,
 )
 from bot.messages import Messages, is_say_hello, get_hello_msg
 from bot.search import show_menu, show_article, paginate_page
@@ -112,19 +116,23 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id,
                 text=Messages.IS_SURE_TO_DELETE,
                 reply_markup=APPROVE_DELETE_KEYBOARD,
-                parse_mode="HTML"
+                parse_mode="HTML",
             )
 
         # HabrThemes buttons
         elif q_data in SUPPORTED_HABR_THEMES:
             await HabrDB().subscribe_on_theme(user_id, q_data)
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=Messages.SUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)), parse_mode="HTML"
+                chat_id=update.effective_chat.id,
+                text=Messages.SUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)),
+                parse_mode="HTML",
             )
         elif (q_data := q_data.lstrip("_")) in SUPPORTED_HABR_THEMES:
             await HabrDB().unsubscribe_on_theme(user_id, q_data)
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=Messages.UNSUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)), parse_mode="HTML"
+                chat_id=update.effective_chat.id,
+                text=Messages.UNSUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)),
+                parse_mode="HTML",
             )
 
 

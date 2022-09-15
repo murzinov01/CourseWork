@@ -82,8 +82,4 @@ async def show_subscribes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not answer:
         answer = Messages.NOT_FOUND_SUBSCRIPTIONS
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=answer,
-        parse_mode="HTML"
-    )
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=answer, parse_mode="HTML")
