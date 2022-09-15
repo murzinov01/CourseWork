@@ -7,14 +7,24 @@ from telegram import (
 
 from bot.constants import ShortCommands, SubscribeOptions, HabrThemes, HABR_THEMES_RU, KeyboardButtons
 
-APPROVE_KEYBOARD = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton("Да", callback_data=ShortCommands.YES),
-            InlineKeyboardButton("Нет", callback_data=ShortCommands.NO),
-        ]
-    ],
-)
+
+def generate_yes_no_keyboard(yes_key: str, no_key: str = ShortCommands.NO) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton("Да", callback_data=yes_key),
+                InlineKeyboardButton("Нет", callback_data=no_key),
+            ]
+        ],
+    )
+
+
+APPROVE_SEARCH_KEYBOARD = generate_yes_no_keyboard(yes_key=ShortCommands.SEARCH_YES)
+APPROVE_NOTIFY_KEYBOARD = generate_yes_no_keyboard(yes_key=ShortCommands.NOTIFY_YES)
+APPROVE_SUBS_LIST_KEYBOARD = generate_yes_no_keyboard(yes_key=ShortCommands.SUBS_LIST_YES)
+APPROVE_HELP_KEYBOARD = generate_yes_no_keyboard(yes_key=ShortCommands.HELP_YES)
+APPROVE_DELETE_KEYBOARD = generate_yes_no_keyboard(yes_key=ShortCommands.DELETE_YES)
+
 
 FINDER_KEYBOARD = ReplyKeyboardMarkup(
     keyboard=[

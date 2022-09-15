@@ -1,5 +1,9 @@
 class ShortCommands:
-    YES = "yes"
+    SEARCH_YES = "s_yes"
+    NOTIFY_YES = "n_yes"
+    SUBS_LIST_YES = "subs_l_yes"
+    HELP_YES = "h_yes"
+    DELETE_YES = "d_yes"
     NO = "no"
 
 

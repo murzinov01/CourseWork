@@ -37,17 +37,19 @@ class HabrDB(metaclass=Singleton):
     async def update_user(self, user_id: object, data: dict):
         return await self.users_collection.update_one({"id": user_id}, {"$set": data}, upsert=True)
 
-    async def update_chat(self, chat_id: object, data: dict):
-        return await self.users_collection.update_one({"chat_id": chat_id}, {"$set": data}, upsert=True)
-
-    async def subscribe_on_theme(self, chat_id: object, theme: str):
+    async def subscribe_on_theme(self, user_id: object, theme: str):
         return await self.users_collection.update_one(
-            {"chat_id": chat_id}, {"$addToSet": {"subscribe_on_theme": theme}}
+            {"id": user_id}, {"$addToSet": {"subscribe_on_theme": theme}}
         )
 
-    async def unsubscribe_on_theme(self, chat_id: object, theme: str):
+    async def unsubscribe_on_theme(self, user_id: object, theme: str):
         return await self.users_collection.update_one(
-            {"chat_id": chat_id}, {"$pull": {"subscribe_on_theme": {"$in": [theme]}}}
+            {"id": user_id}, {"$pull": {"subscribe_on_theme": {"$in": [theme]}}}
+        )
+
+    async def delete_all_subscriptions(self, user_id: object):
+        return await self.users_collection.update_one(
+            {"id": user_id}, {"$set": {"subscribe_on_theme": [], "subscribe_on_author": [], "subscribe_on_tag": []}}
         )
 
     async def find_article_by_title(self, user_id: object, title: str) -> Optional[dict]:
@@ -76,10 +78,10 @@ class HabrDB(metaclass=Singleton):
         theme = article.theme
 
         # find users with subscription by theme
-        chat_ids = []
-        for user in users.find({"subscribe_on_theme": {"$in": [theme]}}, projection={"chat_id": 1}):
-            chat_ids.append(user.get("chat_id"))
-        return chat_ids
+        user_ids = []
+        for user in users.find({"subscribe_on_theme": {"$in": [theme]}}, projection={"id": 1}):
+            user_ids.append(user.get("id"))
+        return user_ids
 
 
 class RedisDB(metaclass=Singleton):

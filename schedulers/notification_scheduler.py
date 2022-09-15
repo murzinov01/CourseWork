@@ -26,20 +26,16 @@ def notification_schedule(every_minutes: int):
     for article in newest_articles:
         entry = {
             "chat_ids": habr_db.find_users_subscribed(article),
-            "article_to_send": json.dumps(asdict(article), ensure_ascii=False)
+            "article_to_send": json.dumps(asdict(article), ensure_ascii=False),
         }
 
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host=config.RABBIT_HOST, port=config.RABBIT_PORT
-            )
+            pika.ConnectionParameters(host=config.RABBIT_HOST, port=config.RABBIT_PORT)
         )
         channel = connection.channel()
         channel.exchange_declare(exchange="notifications", exchange_type="fanout")
         channel.basic_publish(
-            exchange="notifications",
-            routing_key="",
-            body=json.dumps(entry, ensure_ascii=False).encode()
+            exchange="notifications", routing_key="", body=json.dumps(entry, ensure_ascii=False).encode()
         )
         connection.close()
 

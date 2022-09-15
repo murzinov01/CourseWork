@@ -44,7 +44,7 @@ async def find_articles_by_str(
 
 async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_msg = update.message.text.lower()
-    user_id = update.message.from_user["id"]
+    user_id = update.effective_chat.id
     habr_db = HabrDB()
     habr_page = 1
 
@@ -78,7 +78,7 @@ async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def show_article(update: Update, context: ContextTypes.DEFAULT_TYPE):
     title = update.message.text
-    user_id = update.message.from_user["id"]
+    user_id = update.effective_chat.id
     habr_db = HabrDB()
     if article := await habr_db.find_article_by_title(user_id, title):
         article = construct_article_from_template(article)
@@ -87,7 +87,7 @@ async def show_article(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def paginate_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_msg = update.message.text
-    user_id = update.message.from_user["id"]
+    user_id = update.effective_chat.id
     habr_db = HabrDB()
 
     user_entry = await habr_db.find_user(

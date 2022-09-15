@@ -29,5 +29,5 @@ ARTICLES_PER_PAGE = 3
 SEND_MESSAGE_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
 # Notifications
-PARSE_FOR_NOTIFY_PERIOD = 60  # Минуты
+PARSE_FOR_NOTIFY_PERIOD = 10  # Минуты
 NOTIFICATIONS_QUEUE_COLL = "NotificationsQueue"
