@@ -1,9 +1,14 @@
 import asyncio
+from dataclasses import asdict
 from typing import Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from aredis import StrictRedis
+from pymongo.cursor import Cursor
+
 import config
+from parsers.habr_parser import Article
+from pymongo import MongoClient
 
 
 class Singleton(type):
@@ -62,6 +67,19 @@ class HabrDB(metaclass=Singleton):
     async def find_habr_page(self, user_id: object) -> Optional[int]:
         entry = await self.users_collection.find_one({"id": user_id}, projection={"_id": 0, "habr_page": 1})
         return entry.get("habr_page", 0) if entry else None
+
+    @staticmethod
+    def find_users_subscribed(article: Article) -> list[object]:
+        client = MongoClient(config.MONGO_URL)
+        db = client[config.DATABASE]
+        users = db[config.USERS_COLL]
+        theme = article.theme
+
+        # find users with subscription by theme
+        chat_ids = []
+        for user in users.find({"subscribe_on_theme": {"$in": [theme]}}, projection={"chat_id": 1}):
+            chat_ids.append(user.get("chat_id"))
+        return chat_ids
 
 
 class RedisDB(metaclass=Singleton):

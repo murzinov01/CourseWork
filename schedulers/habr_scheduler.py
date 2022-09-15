@@ -17,11 +17,11 @@ def habr_scheduler():
     print("Scheduler started at ", dt.now())
 
     habr_parser = HabrParser(driver)
-    habr_parser.update(days_n=config.UPDATE_FOR_DAYS_NUM)
+    habr_parser.update(days_n=config.PARS_LAST_DAY)
 
 
 def main():
-    schedule.every(config.RUN_EVERY_HOURS_NUM).hours.do(habr_scheduler)
+    schedule.every(config.PARSE_PERIOD).hours.do(habr_scheduler)
     while True:
         schedule.run_pending()
         time.sleep(1)

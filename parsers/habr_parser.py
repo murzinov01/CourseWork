@@ -2,7 +2,7 @@ import os
 from csv import DictWriter
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime, timedelta
-from typing import Union
+from typing import Union, Optional
 
 from pymongo import MongoClient, UpdateOne
 from selenium import webdriver
@@ -42,10 +42,10 @@ class Article:
     publish_date_text: str
     title: str
     title_link: str
-    # image_link: str
     description: str
     tags: list[dict[str, str]]
     stats: ArticleStats
+    theme: Optional[str]
 
 
 ARTICLE_FIELD_NAMES = [field.name for field in fields(Article)]
@@ -137,16 +137,12 @@ class HabrParser:
             comments=comments.text,
         )
 
-    def parse_article(self, article) -> Article:
+    def parse_article(self, article, theme: str = None) -> Article:
         author = article.find_element(By.CLASS_NAME, self.ArticleClasses.AUTHOR)
         publish_date = article.find_element(By.CLASS_NAME, self.ArticleClasses.PUBLISH_DATE)
         title = article.find_element(By.CLASS_NAME, self.ArticleClasses.TITLE)
         tags = article.find_elements(By.CLASS_NAME, self.ArticleClasses.TAG)
         description = article.find_element(By.CLASS_NAME, self.ArticleClasses.DESCRIPTION)
-        # try:
-        #     image = article.find_element(By.CLASS_NAME, self.ArticleClasses.IMAGE)
-        # except NoSuchElementException:
-        #     image = None
 
         return Article(
             author=author.text,
@@ -155,7 +151,6 @@ class HabrParser:
             publish_date_text=publish_date.text,
             title=title.text,
             title_link=title.get_attribute(Attrs.HREF),
-            # image_link=image.get_attribute(Attrs.SRC) if image else None,
             description="\n\n".join((paragraph.text for paragraph in description.find_elements(By.TAG_NAME, Tags.P))),
             tags=[
                 {
@@ -165,6 +160,7 @@ class HabrParser:
                 for tag in tags
             ],
             stats=self.parse_article_stats(article),
+            theme=theme,
         )
 
     def save(self, articles_data: Union[Article, list[Article]], save_method="db"):
@@ -183,14 +179,20 @@ class HabrParser:
         articles_data = self.parse_page()
         return articles_data
 
-    def parse_page(self) -> list[Article]:
+    def parse_page(self, for_minutes: int = None, theme: str = None) -> list[Article]:
         articles_on_page = self.driver.find_elements(By.CLASS_NAME, self.ArticleClasses.ARTICLE)
         articles_data = []
 
         # parse page
         for article in articles_on_page:
             try:
-                article_info = self.parse_article(article)
+                article_info = self.parse_article(article, theme)
+                if for_minutes is not None:
+                    published_date = article_info.publish_date
+                    if datetime.strptime(published_date, "%Y-%m-%dT%H:%M:%S.000Z") < datetime.utcnow() - timedelta(
+                        minutes=for_minutes
+                    ):
+                        break
                 articles_data.append(article_info)
             except NoSuchElementException:
                 continue
@@ -206,6 +208,19 @@ class HabrParser:
                 self.driver.get(f"{config.HABR_URL}/page{page}")
                 articles_data = self.parse_page()
                 self.save(articles_data)
+
+    def find_newest_articles(self, for_minutes: int) -> list[Article]:
+        newest_articles = []
+        seen_titles = set()
+        for theme in ("develop", "admin", "design", "management", "marketing", "popsci"):
+            self.driver.get(f"https://habr.com/ru/flows/{theme}")
+            articles_data = self.parse_page(for_minutes=for_minutes, theme=theme)
+            for article in articles_data:
+                if article.title in seen_titles:
+                    continue
+                seen_titles.add(article.title)
+                newest_articles.append(article)
+        return newest_articles
 
     def update(self, page_num=50, days_n=1):
         for page in tqdm(range(1, page_num + 1)):
