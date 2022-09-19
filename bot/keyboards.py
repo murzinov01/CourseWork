@@ -77,34 +77,15 @@ CHOOSE_THEME_KEYBOARD = InlineKeyboardMarkup(
     ]
 )
 
-CHOOSE_THEME_UNSUBSCRIBED_KEYBOARD = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text=HABR_THEMES_RU.get(HabrThemes.DEVELOP), callback_data=HabrThemes.DEVELOP_UNSUBSCRIBED
-            ),
-            InlineKeyboardButton(
-                text=HABR_THEMES_RU.get(HabrThemes.ADMIN), callback_data=HabrThemes.ADMIN_UNSUBSCRIBED
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text=HABR_THEMES_RU.get(HabrThemes.DESIGN), callback_data=HabrThemes.DESIGN_UNSUBSCRIBED
-            ),
-            InlineKeyboardButton(
-                text=HABR_THEMES_RU.get(HabrThemes.MANAGEMENT), callback_data=HabrThemes.MANAGEMENT_UNSUBSCRIBED
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text=HABR_THEMES_RU.get(HabrThemes.MARKETING), callback_data=HabrThemes.MARKETING_UNSUBSCRIBED
-            ),
-            InlineKeyboardButton(
-                text=HABR_THEMES_RU.get(HabrThemes.POPSCI), callback_data=HabrThemes.POPSCI_UNSUBSCRIBED
-            ),
-        ],
-    ]
-)
+
+def create_choose_theme_unsubscribed_keyboard(themes: list[str]):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=HABR_THEMES_RU.get(theme), callback_data="_" + theme)
+            ] for theme in themes
+        ]
+    )
 
 
 def generate_articles_keyboard(articles: list, left: int, right: int) -> ReplyKeyboardMarkup:

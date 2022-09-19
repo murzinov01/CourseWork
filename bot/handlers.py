@@ -10,12 +10,11 @@ from bot.keyboards import (
     KeyboardButtons,
     SubscribeOptions,
     CHOOSE_THEME_KEYBOARD,
-    CHOOSE_THEME_UNSUBSCRIBED_KEYBOARD,
     APPROVE_NOTIFY_KEYBOARD,
     APPROVE_SEARCH_KEYBOARD,
     APPROVE_SUBS_LIST_KEYBOARD,
     APPROVE_HELP_KEYBOARD,
-    APPROVE_DELETE_KEYBOARD,
+    APPROVE_DELETE_KEYBOARD, create_choose_theme_unsubscribed_keyboard,
 )
 from bot.messages import Messages, is_say_hello, get_hello_msg
 from bot.search import show_menu, show_article, paginate_page
@@ -106,11 +105,19 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id, text=Messages.CHOOSE_THEME, reply_markup=CHOOSE_THEME_KEYBOARD
             )
         elif q_data == SubscribeOptions.UN_THEME:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=Messages.CHOOSE_THEME,
-                reply_markup=CHOOSE_THEME_UNSUBSCRIBED_KEYBOARD,
-            )
+            user_entry = await habr_db.find_user(user_id, projection={"subscribe_on_theme": 1})
+            user_themes = user_entry.get("subscribe_on_theme", [])
+            if user_themes:
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.CHOOSE_THEME,
+                    reply_markup=create_choose_theme_unsubscribed_keyboard(user_themes),
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.NOT_FOUND_THEME_SUBSCRIPTIONS,
+                )
         elif q_data == SubscribeOptions.ALL:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
