@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 import config
-from parsers.habr_parser import HabrParser
+from parsers.habr_selenium_parser import HabrSeleniumParser
 
 
 def habr_scheduler():
@@ -16,7 +16,7 @@ def habr_scheduler():
 
     print("Scheduler started at ", dt.now())
 
-    habr_parser = HabrParser(driver)
+    habr_parser = HabrSeleniumParser(driver)
     habr_parser.update(days_n=config.PARS_LAST_DAY)
 
 

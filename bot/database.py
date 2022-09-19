@@ -1,13 +1,11 @@
 import asyncio
-from dataclasses import asdict
 from typing import Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from aredis import StrictRedis
-from pymongo.cursor import Cursor
 
 import config
-from parsers.habr_parser import Article
+from parsers.habr_selenium_parser import Article
 from pymongo import MongoClient
 
 

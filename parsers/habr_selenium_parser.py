@@ -1,8 +1,8 @@
 import os
 from csv import DictWriter
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict
 from datetime import datetime, timedelta
-from typing import Union, Optional
+from typing import Union
 
 from pymongo import MongoClient, UpdateOne
 from selenium import webdriver
@@ -13,61 +13,10 @@ from tqdm import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
 
 import config
+from parsers.type_enums import Article, ARTICLE_FIELD_NAMES, ArticleStats, Attrs, Tags, ArticleClasses
 
 
-class Attrs:
-    HREF = "href"
-    SRC = "src"
-    DATETIME = "datetime"
-
-
-class Tags:
-    TIME = "time"
-    P = "p"
-
-
-@dataclass
-class ArticleStats:
-    votes: str
-    views: str
-    bookmarks: str
-    comments: str
-
-
-@dataclass
-class Article:
-    author: str
-    author_link: str
-    publish_date: str
-    publish_date_text: str
-    title: str
-    title_link: str
-    description: str
-    tags: list[dict[str, str]]
-    stats: ArticleStats
-    theme: Optional[str]
-
-
-ARTICLE_FIELD_NAMES = [field.name for field in fields(Article)]
-
-
-class HabrParser:
-    class ArticleClasses:
-        # Common fields
-        ARTICLE = "tm-articles-list__item"
-        AUTHOR = "tm-user-info__username"
-        PUBLISH_DATE = "tm-article-snippet__datetime-published"
-        TITLE = "tm-article-snippet__title-link"
-        TAG = "tm-article-snippet__hubs-item-link"
-        IMAGE = "tm-article-snippet__lead-image"
-        DESCRIPTION = "article-formatted-body"
-        STATS = "tm-data-icons"
-
-        # For stats
-        VOTES_COUNTER = "tm-votes-meter"
-        VIEWS_COUNTER = "tm-icon-counter__value"
-        BOOKMARKS_COUNTER = "bookmarks-button__counter"
-        COMMENTS_COUNTER = "tm-article-comments-counter-link__value"
+class HabrSeleniumParser:
 
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
@@ -124,12 +73,13 @@ class HabrParser:
         else:
             raise TypeError
 
-    def parse_article_stats(self, article) -> ArticleStats:
-        article_stats = article.find_element(By.CLASS_NAME, self.ArticleClasses.STATS)
-        votes = article_stats.find_element(By.CLASS_NAME, self.ArticleClasses.VOTES_COUNTER)
-        views = article_stats.find_element(By.CLASS_NAME, self.ArticleClasses.VIEWS_COUNTER)
-        bookmarks = article_stats.find_element(By.CLASS_NAME, self.ArticleClasses.BOOKMARKS_COUNTER)
-        comments = article_stats.find_element(By.CLASS_NAME, self.ArticleClasses.COMMENTS_COUNTER)
+    @staticmethod
+    def parse_article_stats(article) -> ArticleStats:
+        article_stats = article.find_element(By.CLASS_NAME, ArticleClasses.STATS)
+        votes = article_stats.find_element(By.CLASS_NAME, ArticleClasses.VOTES_COUNTER)
+        views = article_stats.find_element(By.CLASS_NAME, ArticleClasses.VIEWS_COUNTER)
+        bookmarks = article_stats.find_element(By.CLASS_NAME, ArticleClasses.BOOKMARKS_COUNTER)
+        comments = article_stats.find_element(By.CLASS_NAME, ArticleClasses.COMMENTS_COUNTER)
         return ArticleStats(
             votes=votes.text,
             views=views.text,
@@ -138,11 +88,11 @@ class HabrParser:
         )
 
     def parse_article(self, article, theme: str = None) -> Article:
-        author = article.find_element(By.CLASS_NAME, self.ArticleClasses.AUTHOR)
-        publish_date = article.find_element(By.CLASS_NAME, self.ArticleClasses.PUBLISH_DATE)
-        title = article.find_element(By.CLASS_NAME, self.ArticleClasses.TITLE)
-        tags = article.find_elements(By.CLASS_NAME, self.ArticleClasses.TAG)
-        description = article.find_element(By.CLASS_NAME, self.ArticleClasses.DESCRIPTION)
+        author = article.find_element(By.CLASS_NAME, ArticleClasses.AUTHOR)
+        publish_date = article.find_element(By.CLASS_NAME, ArticleClasses.PUBLISH_DATE)
+        title = article.find_element(By.CLASS_NAME, ArticleClasses.TITLE)
+        tags = article.find_elements(By.CLASS_NAME, ArticleClasses.TAG)
+        description = article.find_element(By.CLASS_NAME, ArticleClasses.DESCRIPTION)
 
         return Article(
             author=author.text,
@@ -180,7 +130,7 @@ class HabrParser:
         return articles_data
 
     def parse_page(self, for_minutes: int = None, theme: str = None) -> list[Article]:
-        articles_on_page = self.driver.find_elements(By.CLASS_NAME, self.ArticleClasses.ARTICLE)
+        articles_on_page = self.driver.find_elements(By.CLASS_NAME, ArticleClasses.ARTICLE)
         articles_data = []
 
         # parse page
@@ -227,7 +177,7 @@ class HabrParser:
             # open page
             self.driver.get(f"{config.HABR_URL}/page{page}")
 
-            articles_on_page = self.driver.find_elements(By.CLASS_NAME, self.ArticleClasses.ARTICLE)
+            articles_on_page = self.driver.find_elements(By.CLASS_NAME, ArticleClasses.ARTICLE)
             articles_data = []
 
             # parse page
@@ -253,7 +203,7 @@ def main():
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service)
 
-    habr_parser = HabrParser(driver)
+    habr_parser = HabrSeleniumParser(driver)
     habr_parser.parse(page_num=474)
 
 

@@ -8,7 +8,7 @@ from telegram.ext import ContextTypes
 from webdriver_manager.chrome import ChromeDriverManager
 
 import config
-from parsers.habr_parser import HabrParser
+from parsers.habr_selenium_parser import HabrSeleniumParser
 
 from bot.database import HabrDB, RedisDB
 from bot.keyboards import generate_articles_keyboard, KeyboardButtons
@@ -32,7 +32,7 @@ async def find_articles_by_str(
 
     if not articles:  # if not query in cash
         await context.bot.send_message(chat_id=update.effective_chat.id, text=get_wait_msg())
-        habr_parser = HabrParser(DRIVER)
+        habr_parser = HabrSeleniumParser(DRIVER)
         articles = habr_parser.search(user_msg, page=page)
         articles = list(map(asdict, articles))
         await redis_db.set(query_id, json.dumps(articles, ensure_ascii=False))

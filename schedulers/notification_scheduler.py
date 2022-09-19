@@ -10,7 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 import config
 from bot.database import HabrDB
-from parsers.habr_parser import HabrParser
+from parsers.habr_selenium_parser import HabrSeleniumParser
 import pika
 
 
@@ -21,7 +21,7 @@ def notification_schedule(every_minutes: int):
 
     print("Notification Scheduler started at ", dt.now())
 
-    habr_parser = HabrParser(driver)
+    habr_parser = HabrSeleniumParser(driver)
     newest_articles = habr_parser.find_newest_articles(for_minutes=every_minutes)
     for article in newest_articles:
         entry = {
