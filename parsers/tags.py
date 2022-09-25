@@ -28,5 +28,5 @@ def main():
     collect_unique_tags()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

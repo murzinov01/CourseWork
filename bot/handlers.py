@@ -14,8 +14,11 @@ from bot.keyboards import (
     APPROVE_SEARCH_KEYBOARD,
     APPROVE_SUBS_LIST_KEYBOARD,
     APPROVE_HELP_KEYBOARD,
-    APPROVE_DELETE_KEYBOARD, create_choose_theme_unsubscribed_keyboard, create_choose_author_unsubscribed_keyboard,
-    create_choose_tag_subscribed_keyboard, create_choose_tag_unsubscribed_keyboard,
+    APPROVE_DELETE_KEYBOARD,
+    create_choose_theme_unsubscribed_keyboard,
+    create_choose_author_unsubscribed_keyboard,
+    create_choose_tag_subscribed_keyboard,
+    create_choose_tag_unsubscribed_keyboard,
 )
 from bot.messages import Messages, is_say_hello, get_hello_msg
 from bot.search import show_menu, show_article, paginate_page
@@ -54,15 +57,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=Messages.SUBSCRIBED_AUTHOR.format(user_msg),
-                    parse_mode="HTML"
+                    parse_mode="HTML",
                 )
             elif action == "specify_tag":
                 await habr_db.subscribe_on_tag(user_id, tag=user_msg)
                 await habr_db.update_user(user_id, {"action": None})
                 return await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=Messages.SUBSCRIBED_TAG.format(user_msg),
-                    parse_mode="HTML"
+                    chat_id=update.effective_chat.id, text=Messages.SUBSCRIBED_TAG.format(user_msg), parse_mode="HTML"
                 )
 
     user_msg = user_msg.lower()
@@ -95,7 +96,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if q_data := query.data:
         # Yes/No buttons
         if q_data == ShortCommands.SEARCH_YES:
-            await find_articles(update, context)
+            # await find_articles(update, context)
+            await find_by_string(update, context)
         elif q_data == ShortCommands.NOTIFY_YES:
             await subscribe(update, context)
         elif q_data == ShortCommands.SUBS_LIST_YES:
@@ -117,7 +119,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id,
                 text=Messages.SPECIFY_TAG.format(tags_num),
                 reply_markup=create_choose_tag_subscribed_keyboard(tags),
-                parse_mode="HTML"
+                parse_mode="HTML",
             )
         elif q_data == SubscribeOptions.UN_TAG:
             user_entry = await habr_db.find_user(user_id, projection={"subscribe_on_tag": 1})

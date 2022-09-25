@@ -56,9 +56,7 @@ class HabrDB(metaclass=Singleton):
         return await self.users_collection.update_one({"id": user_id}, {"$addToSet": {"subscribe_on_tag": tag}})
 
     async def unsubscribe_on_tag(self, user_id: object, tag: str):
-        return await self.users_collection.update_one(
-            {"id": user_id}, {"$pull": {"subscribe_on_tag": {"$in": [tag]}}}
-        )
+        return await self.users_collection.update_one({"id": user_id}, {"$pull": {"subscribe_on_tag": {"$in": [tag]}}})
 
     async def delete_all_subscriptions(self, user_id: object):
         return await self.users_collection.update_one(
@@ -97,7 +95,6 @@ class HabrDB(metaclass=Singleton):
         theme = article.theme
         author = article.author
         tags = [tag.get("tag") for tag in article.tags]
-        print(tags)
 
         # find users with subscription by theme
         user_ids = set()

@@ -17,7 +17,6 @@ from parsers.type_enums import Article, ARTICLE_FIELD_NAMES, ArticleStats, Attrs
 
 
 class HabrSeleniumParser:
-
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
 

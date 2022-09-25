@@ -81,20 +81,14 @@ CHOOSE_THEME_KEYBOARD = InlineKeyboardMarkup(
 def create_choose_theme_unsubscribed_keyboard(themes: list[str]):
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(text=HABR_THEMES_RU.get(theme), callback_data="_" + theme)
-            ] for theme in themes
+            [InlineKeyboardButton(text=HABR_THEMES_RU.get(theme), callback_data="_" + theme)] for theme in themes
         ]
     )
 
 
 def create_choose_author_unsubscribed_keyboard(authors: list[str]):
     return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text=author, callback_data="author_" + author)
-            ] for author in authors
-        ]
+        inline_keyboard=[[InlineKeyboardButton(text=author, callback_data="author_" + author)] for author in authors]
     )
 
 
@@ -104,7 +98,7 @@ def create_choose_tag_subscribed_keyboard(tags: list[str]):
     for i in range(10):
         keyboard.append(
             [
-                InlineKeyboardButton(text=tags[columns*i + j], callback_data="_tag" + tags[columns*i + j])
+                InlineKeyboardButton(text=tags[columns * i + j], callback_data="_tag" + tags[columns * i + j])
                 for j in range(columns)
             ]
         )
@@ -113,11 +107,7 @@ def create_choose_tag_subscribed_keyboard(tags: list[str]):
 
 def create_choose_tag_unsubscribed_keyboard(tags: list[str]):
     return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text=tag, callback_data="tag_" + tag)
-            ] for tag in tags
-        ]
+        inline_keyboard=[[InlineKeyboardButton(text=tag, callback_data="tag_" + tag)] for tag in tags]
     )
 
 

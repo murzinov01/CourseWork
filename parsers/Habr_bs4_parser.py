@@ -52,7 +52,7 @@ class HabrBS4Parser:
             tags=[
                 {
                     "tag": tag.text.strip(" \n\t,.*"),
-                    "link": tag['href'],
+                    "link": tag["href"],
                 }
                 for tag in tags
             ],
@@ -68,7 +68,7 @@ class HabrBS4Parser:
         articles_data = []
         # parse page
         for article in articles_on_page:
-            #try:
+            # try:
             article_info = self.parse_article(article, theme)
             print(json.dumps(asdict(article_info), indent=4))
             if for_minutes is not None:
