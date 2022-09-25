@@ -88,6 +88,16 @@ def create_choose_theme_unsubscribed_keyboard(themes: list[str]):
     )
 
 
+def create_choose_author_unsubscribed_keyboard(authors: list[str]):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=author, callback_data="author_" + author)
+            ] for author in authors
+        ]
+    )
+
+
 def generate_articles_keyboard(articles: list, left: int, right: int) -> ReplyKeyboardMarkup:
     keyboard = [[KeyboardButton(text=article["title"])] for article in articles[left:right]]
     keyboard.append(

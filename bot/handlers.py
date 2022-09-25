@@ -14,7 +14,7 @@ from bot.keyboards import (
     APPROVE_SEARCH_KEYBOARD,
     APPROVE_SUBS_LIST_KEYBOARD,
     APPROVE_HELP_KEYBOARD,
-    APPROVE_DELETE_KEYBOARD, create_choose_theme_unsubscribed_keyboard,
+    APPROVE_DELETE_KEYBOARD, create_choose_theme_unsubscribed_keyboard, create_choose_author_unsubscribed_keyboard,
 )
 from bot.messages import Messages, is_say_hello, get_hello_msg
 from bot.search import show_menu, show_article, paginate_page
@@ -47,6 +47,14 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     return await show_article(update, context)
                 elif user_msg in (KeyboardButtons.LEFT, KeyboardButtons.RIGHT):
                     return await paginate_page(update, context)
+            elif action == "specify_author":
+                await habr_db.subscribe_on_author(user_id, author=user_msg)
+                await habr_db.update_user(user_id, {"action": None})
+                return await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.SUBSCRIBED_AUTHOR.format(user_msg),
+                    parse_mode="HTML"
+                )
 
     user_msg = user_msg.lower()
     if "иск" in user_msg or "най" in user_msg or "ище" in user_msg:
@@ -76,6 +84,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     habr_db = HabrDB()
     await query.answer()
     if q_data := query.data:
+
         # Yes/No buttons
         if q_data == ShortCommands.SEARCH_YES:
             await find_articles(update, context)
@@ -97,9 +106,22 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif q_data == SubscribeOptions.UN_TAG:
             pass
         elif q_data == SubscribeOptions.AUTHOR:
-            pass
+            await habr_db.update_user(user_id, {"action": "specify_author"})
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=Messages.SPECIFY_AUTHOR)
         elif q_data == SubscribeOptions.UN_AUTHOR:
-            pass
+            user_entry = await habr_db.find_user(user_id, projection={"subscribe_on_author": 1})
+            user_authors = user_entry.get("subscribe_on_author", [])
+            if user_authors:
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.CHOOSE_AUTHOR,
+                    reply_markup=create_choose_author_unsubscribed_keyboard(user_authors),
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.NOT_FOUND_AUTHOR_SUBSCRIPTIONS,
+                )
         elif q_data == SubscribeOptions.THEME:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id, text=Messages.CHOOSE_THEME, reply_markup=CHOOSE_THEME_KEYBOARD
@@ -139,6 +161,16 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=Messages.UNSUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)),
+                parse_mode="HTML",
+            )
+
+        # HabrAuthors buttons
+        elif "author_" in q_data:
+            author = q_data.replace("author_", "")
+            await HabrDB().unsubscribe_on_author(user_id, author)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=Messages.UNSUBSCRIBED_AUTHOR.format(author),
                 parse_mode="HTML",
             )
 

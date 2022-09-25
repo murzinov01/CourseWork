@@ -43,6 +43,14 @@ class HabrDB(metaclass=Singleton):
             {"id": user_id}, {"$pull": {"subscribe_on_theme": {"$in": [theme]}}}
         )
 
+    async def subscribe_on_author(self, user_id: object, author: str):
+        return await self.users_collection.update_one({"id": user_id}, {"$addToSet": {"subscribe_on_author": author}})
+
+    async def unsubscribe_on_author(self, user_id: object, author: str):
+        return await self.users_collection.update_one(
+            {"id": user_id}, {"$pull": {"subscribe_on_author": {"$in": [author]}}}
+        )
+
     async def delete_all_subscriptions(self, user_id: object):
         return await self.users_collection.update_one(
             {"id": user_id}, {"$set": {"subscribe_on_theme": [], "subscribe_on_author": [], "subscribe_on_tag": []}}
@@ -72,12 +80,15 @@ class HabrDB(metaclass=Singleton):
         db = client[config.DATABASE]
         users = db[config.USERS_COLL]
         theme = article.theme
+        author = article.author
 
         # find users with subscription by theme
-        user_ids = []
+        user_ids = set()
         for user in users.find({"subscribe_on_theme": {"$in": [theme]}}, projection={"id": 1}):
-            user_ids.append(user.get("id"))
-        return user_ids
+            user_ids.add(user.get("id"))
+        for user in users.find({"subscribe_on_author": {"$in": [author]}}, projection={"id": 1}):
+            user_ids.add(user.get("id"))
+        return list(user_ids)
 
 
 class RedisDB(metaclass=Singleton):
