@@ -5,6 +5,7 @@ MONGO_URL = "mongodb://docker:mongopw@localhost:49153"
 DATABASE = "Articles"
 HABR_ARTICLES_COLL = "HabrArticles"
 USERS_COLL = "Users"
+TAGS_COLL = "Tags"
 
 # Redis
 REDIS_HOST = "localhost"
