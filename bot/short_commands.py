@@ -77,7 +77,7 @@ async def show_subscribes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check subscribes by tag
     if subscribe_on_tag:
         tags_pretty_list = create_pretty_list(subscribe_on_tag)
-        answer += "\n" + Messages.SUBSCRIBED_ON_THEMES.format(tags_pretty_list)
+        answer += "\n" + Messages.SUBSCRIBED_ON_TAGS + tags_pretty_list
 
     if not answer:
         answer = Messages.NOT_FOUND_SUBSCRIPTIONS

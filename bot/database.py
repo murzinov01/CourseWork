@@ -28,6 +28,7 @@ class HabrDB(metaclass=Singleton):
         )
         habr_db = client[config.DATABASE]
         self.users_collection = habr_db[config.USERS_COLL]
+        self.tags_collection = habr_db[config.TAGS_COLL]
 
     async def find_user(self, user_id: object, projection=None):
         return await self.users_collection.find_one({"id": user_id}, projection=projection)
@@ -49,6 +50,14 @@ class HabrDB(metaclass=Singleton):
     async def unsubscribe_on_author(self, user_id: object, author: str):
         return await self.users_collection.update_one(
             {"id": user_id}, {"$pull": {"subscribe_on_author": {"$in": [author]}}}
+        )
+
+    async def subscribe_on_tag(self, user_id: object, tag: str):
+        return await self.users_collection.update_one({"id": user_id}, {"$addToSet": {"subscribe_on_tag": tag}})
+
+    async def unsubscribe_on_tag(self, user_id: object, tag: str):
+        return await self.users_collection.update_one(
+            {"id": user_id}, {"$pull": {"subscribe_on_tag": {"$in": [tag]}}}
         )
 
     async def delete_all_subscriptions(self, user_id: object):
@@ -74,6 +83,12 @@ class HabrDB(metaclass=Singleton):
         entry = await self.users_collection.find_one({"id": user_id}, projection={"_id": 0, "habr_page": 1})
         return entry.get("habr_page", 0) if entry else None
 
+    async def find_most_popular_tags(self, tags_num: int = None) -> list[str]:
+        tags = []
+        async for entry in self.tags_collection.find({}, limit=tags_num):
+            tags.append(entry.get("tag"))
+        return tags
+
     @staticmethod
     def find_users_subscribed(article: Article) -> list[object]:
         client = MongoClient(config.MONGO_URL)
@@ -81,12 +96,16 @@ class HabrDB(metaclass=Singleton):
         users = db[config.USERS_COLL]
         theme = article.theme
         author = article.author
+        tags = [tag.get("tag") for tag in article.tags]
+        print(tags)
 
         # find users with subscription by theme
         user_ids = set()
         for user in users.find({"subscribe_on_theme": {"$in": [theme]}}, projection={"id": 1}):
             user_ids.add(user.get("id"))
         for user in users.find({"subscribe_on_author": {"$in": [author]}}, projection={"id": 1}):
+            user_ids.add(user.get("id"))
+        for user in users.find({"subscribe_on_tag": {"$in": tags}}, projection={"id": 1}):
             user_ids.add(user.get("id"))
         return list(user_ids)
 

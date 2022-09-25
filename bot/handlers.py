@@ -15,6 +15,7 @@ from bot.keyboards import (
     APPROVE_SUBS_LIST_KEYBOARD,
     APPROVE_HELP_KEYBOARD,
     APPROVE_DELETE_KEYBOARD, create_choose_theme_unsubscribed_keyboard, create_choose_author_unsubscribed_keyboard,
+    create_choose_tag_subscribed_keyboard, create_choose_tag_unsubscribed_keyboard,
 )
 from bot.messages import Messages, is_say_hello, get_hello_msg
 from bot.search import show_menu, show_article, paginate_page
@@ -55,6 +56,14 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     text=Messages.SUBSCRIBED_AUTHOR.format(user_msg),
                     parse_mode="HTML"
                 )
+            elif action == "specify_tag":
+                await habr_db.subscribe_on_tag(user_id, tag=user_msg)
+                await habr_db.update_user(user_id, {"action": None})
+                return await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.SUBSCRIBED_TAG.format(user_msg),
+                    parse_mode="HTML"
+                )
 
     user_msg = user_msg.lower()
     if "иск" in user_msg or "най" in user_msg or "ище" in user_msg:
@@ -84,7 +93,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     habr_db = HabrDB()
     await query.answer()
     if q_data := query.data:
-
         # Yes/No buttons
         if q_data == ShortCommands.SEARCH_YES:
             await find_articles(update, context)
@@ -102,9 +110,29 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Notification parameter buttons
         elif q_data == SubscribeOptions.TAG:
-            pass
+            await habr_db.update_user(user_id, {"action": "specify_tag"})
+            tags_num = 30
+            tags = await habr_db.find_most_popular_tags(tags_num)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=Messages.SPECIFY_TAG.format(tags_num),
+                reply_markup=create_choose_tag_subscribed_keyboard(tags),
+                parse_mode="HTML"
+            )
         elif q_data == SubscribeOptions.UN_TAG:
-            pass
+            user_entry = await habr_db.find_user(user_id, projection={"subscribe_on_tag": 1})
+            user_tags = user_entry.get("subscribe_on_tag", [])
+            if user_tags:
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.CHOOSE_TAG,
+                    reply_markup=create_choose_tag_unsubscribed_keyboard(user_tags),
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=Messages.NOT_FOUND_TAG_SUBSCRIPTIONS,
+                )
         elif q_data == SubscribeOptions.AUTHOR:
             await habr_db.update_user(user_id, {"action": "specify_author"})
             await context.bot.send_message(chat_id=update.effective_chat.id, text=Messages.SPECIFY_AUTHOR)
@@ -156,11 +184,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text=Messages.SUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)),
                 parse_mode="HTML",
             )
-        elif (q_data := q_data.lstrip("_")) in SUPPORTED_HABR_THEMES:
-            await HabrDB().unsubscribe_on_theme(user_id, q_data)
+        elif (q_data_stripped := q_data.lstrip("_")) in SUPPORTED_HABR_THEMES:
+            await HabrDB().unsubscribe_on_theme(user_id, q_data_stripped)
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=Messages.UNSUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data)),
+                text=Messages.UNSUBSCRIBED_THEME.format(HABR_THEMES_RU.get(q_data_stripped)),
                 parse_mode="HTML",
             )
 
@@ -171,6 +199,25 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=Messages.UNSUBSCRIBED_AUTHOR.format(author),
+                parse_mode="HTML",
+            )
+
+        # HabrTags buttons
+        elif "_tag" in q_data:
+            await habr_db.update_user(user_id, {"action": None})
+            tag = q_data.replace("_tag", "")
+            await HabrDB().subscribe_on_tag(user_id, tag)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=Messages.SUBSCRIBED_TAG.format(tag),
+                parse_mode="HTML",
+            )
+        elif "tag_" in q_data:
+            tag = q_data.replace("tag_", "")
+            await HabrDB().unsubscribe_on_tag(user_id, tag)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=Messages.UNSUBSCRIBED_TAG.format(tag),
                 parse_mode="HTML",
             )
 

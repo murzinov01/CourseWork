@@ -98,6 +98,29 @@ def create_choose_author_unsubscribed_keyboard(authors: list[str]):
     )
 
 
+def create_choose_tag_subscribed_keyboard(tags: list[str]):
+    columns = len(tags) // 10
+    keyboard = []
+    for i in range(10):
+        keyboard.append(
+            [
+                InlineKeyboardButton(text=tags[columns*i + j], callback_data="_tag" + tags[columns*i + j])
+                for j in range(columns)
+            ]
+        )
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def create_choose_tag_unsubscribed_keyboard(tags: list[str]):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=tag, callback_data="tag_" + tag)
+            ] for tag in tags
+        ]
+    )
+
+
 def generate_articles_keyboard(articles: list, left: int, right: int) -> ReplyKeyboardMarkup:
     keyboard = [[KeyboardButton(text=article["title"])] for article in articles[left:right]]
     keyboard.append(
