@@ -10,7 +10,7 @@ from telegram.ext.filters import TEXT, COMMAND, Regex
 
 import config
 from bot.handlers import button_handler, find_by_string, find_by_theme, message_handler
-from bot.short_commands import find_articles, start, _help, subscribe, unsubscribe, show_subscribes
+from bot.short_commands import find_articles, start, _help, subscribe, unsubscribe, show_subscriptions
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
@@ -24,7 +24,7 @@ def main():
     find_articles_handler = CommandHandler("find_articles", find_by_string)
     subscribe_handler = CommandHandler("subscribe", subscribe)
     unsubscribe_handler = CommandHandler("unsubscribe", unsubscribe)
-    show_subscribes_handler = CommandHandler("show_subscribes", show_subscribes)
+    show_subscriptions_handler = CommandHandler("show_subscriptions", show_subscriptions)
     # find_by_theme_handler = MessageHandler(Regex(r"Поиск по фильтрам"), find_by_theme)
     # find_by_string_handler = MessageHandler(Regex(r"Обычный поиск"), find_by_string)
 
@@ -34,7 +34,7 @@ def main():
     application.add_handler(find_articles_handler)
     application.add_handler(subscribe_handler)
     application.add_handler(unsubscribe_handler)
-    application.add_handler(show_subscribes_handler)
+    application.add_handler(show_subscriptions_handler)
     # application.add_handler(find_by_theme_handler)
     # application.add_handler(find_by_string_handler)
     application.add_handler(messages_handler)

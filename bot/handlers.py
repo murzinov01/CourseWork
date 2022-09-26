@@ -22,7 +22,7 @@ from bot.keyboards import (
 )
 from bot.messages import Messages, is_say_hello, get_hello_msg
 from bot.search import show_menu, show_article, paginate_page
-from bot.short_commands import find_articles, subscribe, show_subscribes, _help
+from bot.short_commands import find_articles, subscribe, show_subscriptions, _help
 
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -101,7 +101,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif q_data == ShortCommands.NOTIFY_YES:
             await subscribe(update, context)
         elif q_data == ShortCommands.SUBS_LIST_YES:
-            await show_subscribes(update, context)
+            await show_subscriptions(update, context)
         elif q_data == ShortCommands.HELP_YES:
             await _help(update, context)
         elif q_data == ShortCommands.DELETE_YES:

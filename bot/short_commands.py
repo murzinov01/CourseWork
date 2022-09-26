@@ -47,7 +47,7 @@ def create_pretty_list(strings: list[str]) -> str:
     return result
 
 
-async def show_subscribes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def show_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     habr_db = HabrDB()
 
     answer = ""
