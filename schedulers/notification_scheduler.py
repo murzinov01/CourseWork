@@ -25,7 +25,7 @@ def notification_schedule(every_minutes: int):
     newest_articles = habr_parser.find_newest_articles(for_minutes=every_minutes)
     for article in newest_articles:
         entry = {
-            "chat_ids": habr_db.find_users_subscribed(article),
+            "user_ids": habr_db.find_users_subscribed(article),
             "article_to_send": json.dumps(asdict(article), ensure_ascii=False),
         }
 
